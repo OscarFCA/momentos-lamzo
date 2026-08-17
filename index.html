@@ -316,15 +316,15 @@
 </x-import>
 
 <sc-if value="{{ isZoomed }}" hint-placeholder-val="{{ false }}">
-  <div onClick="{{ close }}" style="position:fixed;inset:0;z-index:9999;background:rgba(17,17,17,0.94);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;padding:48px;cursor:zoom-out;overflow:hidden">
-    <div style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:32px">
-      <div style="font-family:'Montserrat',sans-serif;font-size:24px;letter-spacing:0.2em;text-transform:uppercase;color:#867D74">{{ zoomLabel }}</div>
-      <div onClick="{{ close }}" role="button" tabIndex="0" style="font-family:'Montserrat',sans-serif;font-size:24px;letter-spacing:0.16em;text-transform:uppercase;color:#EDEBE9;cursor:pointer" style-hover="color:#867D74">Cerrar ✕</div>
+  <div onClick="{{ close }}" style="position:fixed;inset:0;z-index:9999;background:rgba(17,17,17,0.94);display:flex;flex-direction:column;gap:clamp(10px,1.6vw,24px);padding:clamp(14px,3vw,48px);cursor:zoom-out;overflow:hidden">
+    <div style="flex:none;width:100%;display:flex;align-items:center;justify-content:space-between;gap:16px">
+      <div style="font-family:'Montserrat',sans-serif;font-size:clamp(11px,1.7vw,24px);letter-spacing:0.2em;text-transform:uppercase;color:#867D74">{{ zoomLabel }}</div>
+      <div onClick="{{ close }}" role="button" tabIndex="0" style="font-family:'Montserrat',sans-serif;font-size:clamp(11px,1.7vw,24px);letter-spacing:0.16em;text-transform:uppercase;color:#EDEBE9;cursor:pointer;white-space:nowrap" style-hover="color:#867D74">Cerrar ✕</div>
     </div>
-    <div style="flex:1;width:100%;display:flex;align-items:center;justify-content:center;overflow:auto">
-      <div onClick="{{ toggleScale }}" style="background-image:{{ zoomBg }};background-repeat:no-repeat;background-position:center;background-size:contain;height:{{ zoomHeight }};width:{{ zoomWidth }};cursor:{{ zoomCursor }};transition:height 0.35s cubic-bezier(0.22,1,0.36,1),width 0.35s cubic-bezier(0.22,1,0.36,1)"></div>
+    <div style="flex:1;min-height:0;width:100%;display:flex;overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain">
+      <img src="{{ zoomSrc }}" alt="{{ zoomLabel }}" onClick="{{ toggleScale }}" style="display:block;flex:none;margin:auto;max-width:{{ zoomMax }};max-height:{{ zoomMax }};width:{{ zoomWidth }};height:auto;cursor:{{ zoomCursor }};transition:width 0.35s cubic-bezier(0.22,1,0.36,1)" />
     </div>
-    <div style="font-family:'Montserrat',sans-serif;font-size:20px;letter-spacing:0.1em;color:#878787">Clic en la imagen para acercar · Esc o clic fuera para cerrar</div>
+    <div style="flex:none;font-family:'Montserrat',sans-serif;font-size:clamp(10px,1.4vw,20px);letter-spacing:0.1em;color:#878787;text-align:center;text-wrap:pretty">{{ zoomHint }}</div>
   </div>
 </sc-if>
 
@@ -348,9 +348,15 @@ class Component extends DCLogic {
       zoomSrc: this.state.zoomSrc || '',
       zoomLabel: this.state.zoomLabel,
       zoomBg: this.state.zoomSrc ? 'url("' + this.state.zoomSrc + '")' : 'none',
-      zoomHeight: this.state.scale > 1 ? '150vh' : '76vh',
-      zoomWidth: this.state.scale > 1 ? '178vh' : '90vh',
+      // Relativo al hueco disponible, no en vh: al 100% la lámina entra
+      // completa en cualquier pantalla; al acercar crece solo a lo ancho
+      // (la altura la pone su proporción) y el contenedor hace scroll.
+      zoomMax: this.state.scale > 1 ? 'none' : '100%',
+      zoomWidth: this.state.scale > 1 ? '240%' : 'auto',
       zoomCursor: this.state.scale > 1 ? 'zoom-out' : 'zoom-in',
+      zoomHint: this.state.scale > 1
+        ? 'Desliza para recorrer la lámina · clic en la imagen para alejar'
+        : 'Clic en la imagen para acercar · Esc o clic fuera para cerrar',
       toggleScale: (e) => { e.stopPropagation(); this.setState(s => ({ scale: s.scale > 1 ? 1 : 2 })); },
       close: () => this.close(),
       openEcos: () => this.open('img/ecos.jpeg', 'Ecos'),
